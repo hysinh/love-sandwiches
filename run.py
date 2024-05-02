@@ -1,6 +1,7 @@
 import gspread
 from google.oauth2.service_account import Credentials
 from pprint import pprint
+import math
 
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -124,6 +125,36 @@ def get_last_5_entries_sales():
     return columns
     
 
+def calculate_stock_data(data):
+    """
+    Calculate the average stock for each item type, adding 10%
+    """
+    print("Calculating stock data...\n")
+    stock_recs = []
+    for column in data:
+        avg = sum([int(y) for y in column])/(len(data))
+        avg = math.ceil(avg)
+        rec_sandwiches = math.ceil(avg * 1.1)
+        stock_recs.append(rec_sandwiches)
+    return stock_recs
+
+    #sales_columns / 5 = average
+    #append average to list
+    #update worksheet
+    #print recommendations
+
+def print_recs():
+    """
+    Prints stock recommendations for the next market
+    """
+    print("Stock recommendations for next market...\n")
+    stock = SHEET.worksheet("stock").get_all_values()
+    stock_item_type = stock[0]
+    stock_recommended_no = stock[-1]
+    for item_type, num in zip(stock_item_type, stock_recommended_no):
+        print(f"{item_type.capitalize()}: {num}")  
+
+
 
 def main():
     """
@@ -134,9 +165,13 @@ def main():
     update_worksheet(sales_data, "sales")
     new_surplus_data = calculate_surplus_data(sales_data)
     update_worksheet(new_surplus_data, "surplus")
+    sales_colummns = get_last_5_entries_sales()
+    calculate_stock_data(sales_colummns)
+    stock_rec_data = calculate_stock_data(sales_colummns)
+    update_worksheet(stock_rec_data, "stock")
+    print_recs()
+
 
 print("Welcome to Love Sandwiches Data Automation")
-sales_colummns = get_last_5_entries_sales()
-
-#main()
+main()
 
